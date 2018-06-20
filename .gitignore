@@ -102,3 +102,8 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+script/seele/bin
+script/seele/build
+sources/go-seele-sources/config/
+.vscode

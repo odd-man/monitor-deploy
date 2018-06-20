@@ -1,0 +1,7 @@
+#example	    content			index		                                
+#example1: username@host:port passwd  1                      
+
+# next line should be leave and remain one blank line it!!!
+#all nodes as follow:
+wangxin@192.168.11.11:22 wangxin123 1,2,3,4 #monitor1, monitor2, monitor3, monitor4
+wangxin@192.168.11.13:22 wangxin123 5 #monitor4

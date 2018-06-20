@@ -1,0 +1,6 @@
+#example	    content					                                
+#example1: username@host:port passwd                       
+
+# next line should be leave and remain one blank line it!!!
+#all nodes as follow:
+wangxin@127.0.0.1:22 wangxin123
