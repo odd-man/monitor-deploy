@@ -89,12 +89,33 @@ def function_tips(start="green", end="green"):
 @task
 @parallel
 @function_tips()
-def clear_data():
+def clear_all():
     with settings(warn_only=True):
         path = "go-seele"
         data_path = ".seele"
         sudo("rm -rf ~/{}".format(path))
         sudo("rm -rf ~/{}".format(data_path))
+
+@task
+@parallel
+@function_tips()
+def clear_data(clear_log=False):
+    with settings(warn_only=True):
+        data_path = ".seele"
+        sudo("rm -rf ~/{}".format(data_path))
+        print(green("not exist dir {} and create it!".format(clear_log)))
+        if clear_log is True:
+            print(green("not exist dir {} and create it!".format(clear_log)))
+            clear_log()
+
+@task
+@parallel
+@function_tips()
+def clear_log(log_path=None):
+    with settings(warn_only=True):
+        if not log_path:
+            log_path = "/tmp/seeleTemp/log"
+        sudo("rm -rf {}".format(log_path))       
 
 @task
 @parallel
@@ -141,6 +162,36 @@ def install_from_binary(start=None,size=None):
             run("mkdir -p {}/{}".format(path, path+val))
             run('cp {}/{} {}/{}/{}'.format(path, binary_name, path, path+val, "node{}".format(val)))
 
+@task
+@function_tips()
+def send_binary_file(file=None,start=None,size=None):
+    path = "go-seele"
+    # with settings(hide('running', 'stdout'), warn_only=True):
+    with settings(warn_only=True):
+        if not start:
+            index = public_host_index[env.host_string]
+        else:
+            if start == '0':
+                start = 1
+            if not size or size == '0':
+                size = 1
+            start = int(start)
+            end = start + int(size)
+            index = []
+            for i in range(start, end):
+                index.append(i)
+        if local("test -f bin/{}".format(file)).failed:
+            print(red("file {} not exist in {}".format(file, "bin/")))
+            return
+            
+        # put should not used with cd
+        run("cd ~/")
+        run('mkdir -p {}'.format(path))
+        put('bin/{}'.format(file),'{}/{}'.format(path, file))
+        run('chmod +x {}/{}'.format(path, file))
+        for index,val in enumerate(public_host_index[env.host_string]):
+            run("mkdir -p {}/{}".format(path, path+val))
+            run('cp {}/{} {}/{}/{}'.format(path, file, path, path+val, "{}{}".format(file, val)))
 
 @task
 @parallel
@@ -152,8 +203,7 @@ def send_config_file(host_index=None, index=None):
     # with settings(warn_only=True):
         index = public_host_index[env.host_string]
         run('cd ~/')
-        # accounts_file="accounts.json"
-        accounts_file="acconts.json"
+        accounts_file="accounts.json"
         if local("test -f ./config/{}".format(accounts_file)).failed:
             print(red("config {} in config lost".format(accounts_file)))
             return
@@ -171,7 +221,7 @@ def send_config_file(host_index=None, index=None):
 @parallel
 @function_tips()
 def start_node(index=None):
-    with settings(hide('running', 'stdout'), warn_only=True):
+    with settings(warn_only=True):
         origin_index = public_host_index[env.host_string]
         if index is None:
             index_arr = origin_index
@@ -182,19 +232,20 @@ def start_node(index=None):
         path = "go-seele"
         binary_name = 'node'
         config_path = "config"
+        accounts_file="accounts.json"
         for i, val in enumerate(index_arr):
             with cd('~/{}/{}'.format(path, path+val)):
                 if val in origin_index:
                     run('pwd')
                     node_file = 'node'+val+'.json'
-                    run('(nohup ./{} start -c {}/{} --miner stop >/dev/null 2>&1 &) && sleep 2'.format(binary_name+val, config_path, node_file), pty=False)
+                    run('(nohup ./{} start -c {}/{} --accounts {}/{} --miner stop  >/dev/null 2>&1 &) && sleep 2'.format(binary_name+val, config_path, node_file, config_path, accounts_file), pty=False)
            
 
 @task
 @parallel
 @function_tips()
 def stop_node(index=None):
-    with settings(hide('running', 'stdout'), warn_only=True):
+    with settings(warn_only=True):
         origin_index = public_host_index[env.host_string]
         if index is None:
             index_arr = origin_index
@@ -211,6 +262,13 @@ def stop_node(index=None):
                     run('pwd')
                     sudo("ps -ef|grep node{}|awk {{'print $2'}}|xargs kill -9".format(val))
 
+@task
+@parallel
+@function_tips()
+def restart_node(index=None):
+    with settings(warn_only=True):
+        stop_node()
+        start_node()
 
 @task
 @parallel

@@ -15,4 +15,4 @@ fab install_from_binary
 
 # rm -f ${CUR_INSTALL_PATH}/bin/${BINARY_NAME} 2>/dev/null
 
-./send_config.sh
+./update_config.sh
