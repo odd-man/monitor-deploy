@@ -260,7 +260,7 @@ def stop_node(index=None):
             with cd('~/{}/{}'.format(path, path+val)):
                 if val in origin_index:
                     run('pwd')
-                    sudo("ps -ef|grep node{}|awk {{'print $2'}}|xargs kill -9".format(val))
+                    sudo("ps -ef|grep {}{}|awk {{'print $2'}}|xargs kill -9".format(binary_name, val))
 
 @task
 @parallel
@@ -278,7 +278,31 @@ def seek_run_nodes(name=None):
     if not name:
        name = binary_name
     run("ps -ef|grep {}".format(binary_name))
-   
+
+@task
+@parallel
+@function_tips()
+def seek_nodes_mem(index=None):
+    with settings(warn_only=True):
+        origin_index = public_host_index[env.host_string]
+        binary_name = 'node'
+        if index is None:
+            for i, val in enumerate(origin_index):
+                run("free -h")
+                run("ps -ef|grep {}{}".format(binary_name, val))    
+                # print(blue("node {}".format(public_host_index[env.host_string])))
+        else:
+           set_indexs = set(index.split(":"))
+           if len(set_indexs) != 0:
+                set_indexs.discard("")
+                set_indexs.discard(" ")
+                if len(set_indexs) != 0:
+                    index_arr = [x for x in sorted(set_indexs)]
+                for i, val in enumerate(index_arr):
+                    if val in origin_index:
+                        run("free -h")
+                        run("ps -ef|grep {}{}".format(binary_name, val))    
+                        print(blue("node {}".format(public_host_index[env.host_string])))
                
 
 # ----------------------------- init node end -----------------------------------
